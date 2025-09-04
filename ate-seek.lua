@@ -7,7 +7,7 @@ local enc2 = 0
 local enc3 = 1.0
 
 counter = 0
-notes = {0,3,5,6,7,9,11}
+notes = {0,2,3,5,6,8,9,11,12} -- dorian
 steps = {0,0,0,0,0,0,0,0}
 selected_step = 1
 
@@ -23,7 +23,7 @@ function clk()
   while true do
     clock.sync(1/4)
     counter = counter + 1
-    if counter > #notes then counter = 1 end
+    if counter > #steps then counter = 1 end
     crow.output[1].volts = steps[counter]/12
     crow.output[2]()
     
@@ -50,6 +50,20 @@ function enc(n,d)
   elseif n == 2 then
     enc2 = util.clamp(enc2 + d,1,#steps)
     selected_step = enc2
+    -- Update enc3 to match the current step's note
+    -- Find which index in the notes array matches the current step's value
+    local found = false
+    for i = 1, #notes do
+      if notes[i] == steps[selected_step] then
+        enc3 = i
+        found = true
+        break
+      end
+    end
+    -- If current step's note isn't in the notes array, default to first note
+    if not found then
+      enc3 = 1
+    end
   elseif n == 3 then
     enc3 = util.clamp(enc3 + d,1,#notes)
     steps[selected_step] = notes[enc3]
